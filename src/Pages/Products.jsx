@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import MUIDataTable from "mui-datatables";
 import { AddCircleOutline, Delete, Edit } from "@mui/icons-material";
-import { IconButton } from "@mui/material";
+import { Box, Button, IconButton, Modal, Typography } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { useNavigate } from "react-router-dom";
 import { Creators as ProductDuck } from "../store/products";
@@ -13,18 +13,33 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+};
+
 export default function Products() {
   const navigate = useNavigate();
   const { products } = useSelector((state) => state.products);
   const classes = useStyles();
   const dispatch = useDispatch();
+  const [open, setOpen] = useState(false);
+  const [ids, setIds] = useState([]);
 
   const handleDeleteItem = (id) => {
     dispatch(ProductDuck.deleteProduct(id));
   };
-  
+
   const handleDeleteItems = (ids) => {
     dispatch(ProductDuck.deleteProducts(ids));
+    setIds([]);
   };
 
   const options = {
@@ -39,11 +54,12 @@ export default function Products() {
       </IconButton>
     ),
     onRowsDelete: ({ data }) => {
+      setOpen((a) => !a);
       const ids = data.map((a) => {
         const item = products[a.dataIndex];
         return item.id;
       });
-      handleDeleteItems(ids)
+      setIds(ids);
       return false;
     },
   };
@@ -151,6 +167,44 @@ export default function Products() {
         columns={columns}
         options={options}
       />
+      <Modal
+        keepMounted
+        open={open}
+        onClose={() => {
+          setIds([]);
+          setOpen((a) => !a);
+        }}
+        aria-labelledby="keep-mounted-modal-title"
+        aria-describedby="keep-mounted-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="keep-mounted-modal-title" variant="h6" component="h2">
+            Confirmation
+          </Typography>
+          <Typography id="keep-mounted-modal-description" sx={{ mt: 2 }}>
+            Are you sure to delete selected products?
+          </Typography>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginTop: 25,
+            }}
+          >
+            <Button
+              onClick={() => {
+                setIds([]);
+                setOpen((a) => !a);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button color="error" onClick={() => handleDeleteItems(ids)}>
+              Delete
+            </Button>
+          </div>
+        </Box>
+      </Modal>
     </div>
   );
 }
