@@ -40,6 +40,7 @@ export default function Products() {
   const handleDeleteItems = (ids) => {
     dispatch(ProductDuck.deleteProducts(ids));
     setIds([]);
+    setOpen(false);
   };
 
   const options = {
